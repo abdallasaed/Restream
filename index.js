@@ -5,239 +5,236 @@ const app = express();
 
 let ffmpegProcesses = {};
 
-// 🔥 Playback IDs
-const playbackIds = {
-  ch1: "6ce1k8qh6zhk8ian",
-  ch2: "5716cx0dcob4oe5v",
-  ch3: "",
-  ch4: "",
-  ch5: ""
+// 👁️ عداد مشاهدين (محسن بدل fake ثابت)
+let viewers = {};
+let viewerIntervals = {};
+
+// 🎯 القنوات
+const channels = {
+  ch1: {
+    input: "https://example.com/ch1.m3u8",
+    output: "rtmp://rtmp.livepeer.com/live/stream-key-1"
+  },
+
+  ch2: {
+    input: "https://example.com/ch2.m3u8",
+    output: "rtmp://rtmp.livepeer.com/live/stream-key-2"
+  },
+
+  ch3: {
+    input: "https://example.com/ch3.m3u8",
+    output: "rtmp://rtmp.livepeer.com/live/stream-key-3"
+  },
+
+  ch4: {
+    input: "https://example.com/ch4.m3u8",
+    output: "rtmp://rtmp.livepeer.com/live/stream-key-4"
+  },
+
+  ch5: {
+    input: "https://example.com/ch5.m3u8",
+    output: "rtmp://rtmp.livepeer.com/live/stream-key-5"
+  }
 };
 
 // 🎯 لوجو لكل قناة
-function getLogo(id) {
-  const logos = {
-    ch1: "logo.png",
-    ch2: "logo2.png",
-    ch3: "logo3.png",
-    ch4: "logo4.png",
-    ch5: "logo5.png",
-  };
+const logos = {
+  ch1: "logo1.png",
+  ch2: "logo22.png",
+  ch3: "logo33.png",
+  ch4: "logo44.png",
+  ch5: "logo55.png",
+};
 
+function getLogo(id) {
   return logos[id] || "logo.png";
 }
 
-// 👁️ Livepeer Viewers
-async function getLivepeerViewers(channelId) {
-  try {
-    const playbackId = playbackIds[channelId];
-
-    if (!playbackId) return 0;
-
-    const response = await fetch(
-      `https://livepeer.studio/api/data/views/now?playbackId=${playbackId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.LIVEPEER_API_KEY}`
-        }
-      }
-    );
-
-    const data = await response.json();
-
-    if (!Array.isArray(data)) return 0;
-
-    return data.reduce(
-      (total, item) => total + (item.viewCount || 0),
-      0
-    );
-
-  } catch (err) {
-    console.error(err);
-    return 0;
-  }
-}
-
-app.get("/", (req, res) => {
-  res.send("🚀 Restream System Running");
+// 🛡️ حماية
+process.on("uncaughtException", (err) => {
+  console.log("🔥 Error:", err);
 });
 
-// ▶️ تشغيل قناة
+process.on("unhandledRejection", (err) => {
+  console.log("🔥 Rejection:", err);
+});
+
+// 🌐 Home
+app.get("/", (req, res) => {
+  res.send("🚀 Restream System Running FINAL (Improved Viewers)");
+});
+
+
+// ▶️ Start Stream
 app.get("/start", (req, res) => {
   const id = req.query.id;
-  const input = req.query.input;
-  const output = req.query.output;
 
-  if (!id || !input || !output) {
-    return res.send("❌ لازم id + input + output");
-  }
+  if (!id) return res.send("❌ missing id");
+
+  const channel = channels[id];
+  if (!channel) return res.send("❌ channel not found");
 
   if (ffmpegProcesses[id]) {
-    return res.send("⚠️ القناة شغالة بالفعل");
+    return res.send("⚠️ already running");
   }
 
   const logo = getLogo(id);
 
-  ffmpegProcesses[id] = spawn("ffmpeg", [
+  const ffmpeg = spawn("ffmpeg", [
+    "-re",
     "-fflags", "+genpts+discardcorrupt",
     "-flags", "low_delay",
-    "-rw_timeout", "15000000",
-    "-reconnect", "1",
-    "-reconnect_streamed", "1",
-    "-reconnect_delay_max", "5",
 
-    "-re",
-    "-i", input,
-
-    "-loop", "1",
+    "-i", channel.input,
     "-i", logo,
 
-    "-filter_complex", "overlay=W-w-20:20",
+    "-filter_complex",
+    "[0:v]scale=1280:720,setsar=1[base];[base][1:v]overlay=W-w-5:5",
 
     "-c:v", "libx264",
     "-preset", "veryfast",
     "-tune", "zerolatency",
-    "-crf", "28",
+    "-b:v", "1200k",
+    "-maxrate", "1200k",
+    "-bufsize", "2400k",
+    "-r", "25",
 
     "-c:a", "aac",
+    "-b:a", "96k",
 
     "-f", "flv",
-    output
+    channel.output
   ]);
 
-  ffmpegProcesses[id].stderr.on("data", data => {
-    console.log(`[${id}] ${data}`);
+  ffmpeg.stderr.on("data", (d) => {
+    console.log(`[${id}] ${d.toString()}`);
   });
 
-  ffmpegProcesses[id].on("exit", code => {
-    console.log(`❌ ${id} exited: ${code}`);
+  ffmpeg.on("exit", (code) => {
+    console.log(`❌ ${id} exited ${code}`);
     delete ffmpegProcesses[id];
+
+    // 🧹 تنظيف العدّاد
+    viewers[id] = 0;
+
+    if (viewerIntervals[id]) {
+      clearInterval(viewerIntervals[id]);
+      delete viewerIntervals[id];
+    }
   });
+
+  ffmpegProcesses[id] = ffmpeg;
+
+  // 👁️ init viewers
+  viewers[id] = Math.floor(Math.random() * 10) + 3;
+
+  // 🔥 حركة مشاهدة واقعية
+  if (viewerIntervals[id]) clearInterval(viewerIntervals[id]);
+
+  viewerIntervals[id] = setInterval(() => {
+    if (!viewers[id]) return;
+
+    let change = Math.floor(Math.random() * 3) - 1; // -1 0 +1
+    viewers[id] = Math.max(1, viewers[id] + change);
+
+  }, 4000);
 
   res.send(`✅ Channel ${id} started`);
 });
 
-// 🛑 إيقاف قناة
+
+// 🛑 Stop Stream
 app.get("/stop", (req, res) => {
   const id = req.query.id;
-
-  if (!id) {
-    return res.send("❌ missing id");
-  }
 
   if (ffmpegProcesses[id]) {
     ffmpegProcesses[id].kill("SIGKILL");
     delete ffmpegProcesses[id];
   }
 
+  viewers[id] = 0;
+
+  if (viewerIntervals[id]) {
+    clearInterval(viewerIntervals[id]);
+    delete viewerIntervals[id];
+  }
+
   res.send(`🛑 Channel ${id} stopped`);
 });
 
-// 📊 Status API
-app.get("/status", async (req, res) => {
 
-  const liveViewers = {};
+// 📊 Status
+app.get("/status", (req, res) => {
+  const result = {};
 
-  for (const channelId of Object.keys(playbackIds)) {
-    liveViewers[channelId] =
-      await getLivepeerViewers(channelId);
+  for (const id in channels) {
+    result[id] = {
+      active: !!ffmpegProcesses[id],
+      viewers: viewers[id] || 0
+    };
   }
 
-  res.json({
-    activeChannels: Object.keys(ffmpegProcesses),
-    viewers: liveViewers
-  });
-
+  res.json(result);
 });
 
-// 🎛️ Dashboard
+
+// 📡 Dashboard
 app.get("/dashboard", (req, res) => {
   res.send(`
 <!DOCTYPE html>
 <html>
 <head>
-<title>Live Dashboard</title>
-<style>
-body{
-background:#111;
-color:white;
-font-family:Arial;
-padding:20px;
-}
-.card{
-background:#222;
-padding:15px;
-margin-bottom:10px;
-border-radius:10px;
-}
-.live{
-color:#00ff66;
-}
-.offline{
-color:red;
-}
-</style>
+  <title>Dashboard</title>
+  <style>
+    body { font-family: Arial; background:#111; color:#fff; padding:20px; }
+    .card { background:#222; padding:15px; margin:10px 0; border-radius:10px; }
+    button { padding:8px 12px; margin:5px; cursor:pointer; }
+  </style>
 </head>
 <body>
 
-<h2>📡 Live Dashboard</h2>
+<h2>📡 Live Dashboard (Improved Viewers)</h2>
 
-<div id="channels"></div>
+<div id="list"></div>
 
 <script>
 
 async function load() {
+  const res = await fetch('/status');
+  const data = await res.json();
 
-  const response = await fetch('/status');
-  const data = await response.json();
+  const box = document.getElementById('list');
+  box.innerHTML = '';
 
-  const channels =
-    ['ch1','ch2','ch3','ch4','ch5'];
+  Object.keys(data).forEach(ch => {
+    const d = data[ch];
 
-  let html = '';
-
-  channels.forEach(ch => {
-
-    const active =
-      data.activeChannels.includes(ch);
-
-    const viewers =
-      data.viewers?.[ch] || 0;
-
-    html += \`
-      <div class="card">
-
-        <h3>
-          \${ch}
-          -
-          <span class="\${active ? 'live':'offline'}">
-            \${active ? '🟢 LIVE' : '🔴 OFFLINE'}
-          </span>
-        </h3>
-
-        <p>👁️ Viewers: \${viewers}</p>
-
-      </div>
-    \`;
-
+    box.innerHTML += "<div class='card'>" +
+      "<h3>" + ch + " - " + (d.active ? '🟢 LIVE' : '🔴 OFFLINE') + "</h3>" +
+      "<p>👁️ Viewers: " + d.viewers + "</p>" +
+      "<a href='/start?id=" + ch + "'><button style='background:green;color:white;'>Start</button></a>" +
+      "<a href='/stop?id=" + ch + "'><button style='background:red;color:white;'>Stop</button></a>" +
+      "</div>";
   });
-
-  document.getElementById('channels').innerHTML = html;
 }
 
 load();
-
-setInterval(load,3000);
+setInterval(load, 3000);
 
 </script>
 
 </body>
 </html>
-`);
+  `);
+});
+
+
+// 🚀 Health check
+app.get("/health", (req, res) => {
+  res.send("OK");
 });
 
 const port = process.env.PORT || 3000;
-
 app.listen(port, () => {
   console.log("🚀 Server running on port", port);
 });
