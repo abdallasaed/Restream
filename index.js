@@ -12,8 +12,8 @@ let viewerIntervals = {};
 // 🎯 القنوات
 const channels = {
   ch1: {
-    input: "https://example.com/ch1.m3u8",
-    output: "rtmp://rtmp.livepeer.com/live/stream-key-1"
+    input: "http://195.182.16.45:8080/live/omar777/01103978590/460862.ts",
+    output: "rtmp://de.pscp.tv:80/x/na48auc7vc9t
   },
 
   ch2: {
