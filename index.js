@@ -13,7 +13,7 @@ let viewerIntervals = {};
 const channels = {
   ch1: {
     input: "https://live.aab1.top:443/odai/123321/9087.ts",
-    output: "rtmp://rtmp.livepeer.com/live/eac6-8ey8-kj82-oprw"
+    output: "rtmp://vsu.okcdn.ru/input/15291325750994_16492557896402_3xfh7hqsbu"
   },
 
   ch2: {
