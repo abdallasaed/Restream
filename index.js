@@ -13,7 +13,7 @@ let viewerIntervals = {};
 const channels = {
   ch1: {
     input: "http://195.182.16.45:8080/live/omar777/01103978590/460862.ts",
-    output: "rtmp://de.pscp.tv:80/x/na48auc7vc9t"
+    output: "rtmp://rtmp.livepeer.com/live/eac6-8ey8-kj82-oprw"
   },
 
   ch2: {
