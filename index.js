@@ -12,7 +12,7 @@ let viewerIntervals = {};
 // 🎯 القنوات
 const channels = {
   ch1: {
-    input: "https://live.aab1.top:443/odai/123321/9087.ts",
+    input: "https://live.aab1.top:443/odai/123321/9088.ts",
     output: "rtmp://vsu.okcdn.ru/input/15291325750994_16492557896402_3xfh7hqsbu"
   },
 
