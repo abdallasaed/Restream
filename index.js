@@ -12,7 +12,7 @@ let viewerIntervals = {};
 // 🎯 القنوات
 const channels = {
   ch1: {
-    input: "https://cp11.adabmedia.com/hls2/sport.m3u8",
+    input: "https://pub-f6b8e84cfb6a4f70b4fc28e51d834e00.r2.dev/BMax1-1/index.m3u8",
     output: "rtmp://vsu.okcdn.ru/input/15291325750994_16492557896402_3xfh7hqsbu"
   },
 
