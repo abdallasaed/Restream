@@ -12,7 +12,7 @@ let viewerIntervals = {};
 // 🎯 القنوات
 const channels = {
   ch1: {
-    input: "http://pro.netmos.ovh:7355/live/MMTVO89S7DY7CNV7SD/P7HIDSPCN580WXH90/181661.ts",
+    input: "http://195.182.16.44:8080/live/357643467990765/Ofgo3yz8CH/460861.ts",
     output: "rtmp://vsu.okcdn.ru/input/15291325750994_16492557896402_3xfh7hqsbu"
   },
 
