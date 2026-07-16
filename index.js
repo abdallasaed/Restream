@@ -12,7 +12,7 @@ let viewerIntervals = {};
 // 🎯 القنوات
 const channels = {
   ch1: {
-    input: "https://23370wa.xyz:443/live/mo3ad11a11/mo3ada11a11/496.ts",
+    input: "https://table.houseinventer.com/pdf/AzMjD2IyADQPb2tLfQ/index.m3u8",
     output: "rtmp://vsu.okcdn.ru/input/15291325750994_16492557896402_3xfh7hqsbu"
   },
 
