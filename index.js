@@ -12,7 +12,7 @@ let viewerIntervals = {};
 // 🎯 القنوات
 const channels = {
   ch1: {
-    input: "https://table.houseinventer.com/pdf/AzMjD2IyADQPb2tLfQ/index.m3u8",
+    input: "https://alive1.kianezidi.workers.dev/beemax1.m3u8",
     output: "rtmp://vsu.okcdn.ru/input/15291325750994_16492557896402_3xfh7hqsbu"
   },
 
